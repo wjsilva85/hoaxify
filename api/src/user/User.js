@@ -1,7 +1,7 @@
 'use strict';
 
 const Sequelize = require('sequelize');
-const sequelize = require('../database');
+const sequelize = require('../config/database');
 
 const Model = Sequelize.Model;
 
