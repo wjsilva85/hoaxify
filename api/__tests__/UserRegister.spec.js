@@ -115,4 +115,35 @@ describe('User Registration', () => {
     const response = await postUser(validUser);
     expect(response.body.validationErrors[field].msg).toBe(expectedMessage);
   });
+
+  it.each`
+    field         | value             | minSize | maxSize | expectedMessage
+    ${'username'} | ${'a'.repeat(3)}  | ${4}    | ${32}   | ${'Username must be at least 4 characters and at max 32 characters long'}
+    ${'username'} | ${'a'.repeat(33)} | ${4}    | ${32}   | ${'Username must be at least 4 characters and at max 32 characters long'}
+    ${'password'} | ${'a'.repeat(5)}  | ${8}    | ${18}   | ${'Password must be at least 8 characters and at max 18 characters long'}
+    ${'password'} | ${'a'.repeat(19)} | ${8}    | ${18}   | ${'Password must be at least 8 characters and at max 18 characters long'}
+    ${'email'}    | ${'a'.repeat(7)}  | ${8}    | ${35}   | ${'Email must be at least 8 characters and at max 35 characters long'}
+    ${'email'}    | ${'a'.repeat(36)} | ${8}    | ${35}   | ${'Email must be at least 8 characters and at max 35 characters long'}
+  `(
+    'returns size validation erros when $field is less than $maxSize characters and bigger than $minSize Characters',
+    async ({ field, value, expectedMessage }) => {
+      validUser[field] = value;
+      const response = await postUser(validUser);
+      expect(response.body?.validationErrors[field]?.msg).toBe(expectedMessage);
+    }
+  );
+
+  it('returns error when email format is not valid', () => {
+    return postUser(Object.assign({}, validUser, { email: 'email.com' })).then((response) => {
+      expect(response.body?.validationErrors.email?.msg).toBe("Email doesn't look valid");
+    });
+  });
+
+  it('returns error when password format is not valid', () => {
+    return postUser(Object.assign({}, validUser, { password: 'aar5opiuy' })).then((response) => {
+      expect(response.body?.validationErrors.password?.msg).toBe(
+        'Password must contain at least 2 uppercase, 2 lowercase, 2 numbers, 1 special character and at least 8 characters long'
+      );
+    });
+  });
 });
